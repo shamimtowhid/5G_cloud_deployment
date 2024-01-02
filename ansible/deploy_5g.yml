@@ -1,0 +1,14 @@
+---
+- name: Provision AWS VPC using Terraform
+  hosts: localhost
+  gather_facts: false
+  tasks:
+    - name: Run Terraform init
+      command: "terraform init -upgrade"
+      args:
+        chdir: "{{ playbook_dir }}/terraform"
+        
+    - name: Run Terraform apply
+      command: "terraform apply -auto-approve"
+      args:
+        chdir: "{{ playbook_dir }}/terraform"

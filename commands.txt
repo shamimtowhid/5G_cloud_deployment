@@ -1,0 +1,19 @@
+To deploy using ansible playbook, the keypair needs to be created at first
+The name of the created keypair is needed in the terraform config file
+
+
+To destroy all provisioned resources using terraform:
+terraform destroy
+
+terraform init -upgrade # to initialize terraform
+terraform plan # to see the resources that will be created
+terraform apply # start provisioning resources
+
+
+# ansible commands
+ansible-playbook -i ini_file_path path_of_yml_file
+
+
+# packer commands
+packer validate base_image.json # to validate the json file
+packer build -var "infra_env=staging" base_image.json # to start building the image
