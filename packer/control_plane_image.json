@@ -4,7 +4,7 @@
 		"infra_name": "5G_core",
 		"infra_env": "",
 		"aws_region": "us-east-2",
-		"aws_instance": "t2.micro"
+		"aws_instance": "t2.small"
 	},
 	"builders": [
 		{
@@ -34,13 +34,13 @@
 				"Role": "baked-ami",
 				"Unique": "baked-ami-{{timestamp}}",
 				"ManagedBy": "packer",
-				"Component": "5g_core"
+				"Component": "5g_control_plane"
 			}
 		}
 	],
 	"provisioners": [
 		{
-			"script": "{{template_dir}}/scripts/install.sh",
+			"script": "{{template_dir}}/scripts/install_control_plane.sh",
 			"type": "shell"
 		}
 	]

@@ -17,6 +17,7 @@ sudo apt install -y \
     curl \
     software-properties-common
 
+
 # Add Docker GPG key
 curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
 
@@ -45,13 +46,13 @@ docker-compose --version
 sudo docker pull mongo
 
 # installing gtp5g
-echo ">>>>>>>>>>> INSTALLING GTP5G"
-sudo apt-get update
-git clone https://github.com/shamimtowhid/gtp5g.git && cd gtp5g
-sudo make clean
-sudo make
-sleep 3
-sudo make install
+#echo ">>>>>>>>>>> INSTALLING GTP5G"
+#sudo apt-get update
+#git clone https://github.com/shamimtowhid/gtp5g.git && cd gtp5g
+#sudo make clean
+#sudo make
+#sleep 3
+#sudo make install
 
 
 # cloning testbed
@@ -62,6 +63,6 @@ git clone --recursive -j `nproc` https://github.com/shamimtowhid/free5gc.git
 cd ..
 
 # Build the images
-sudo make all
+sudo make base amf ausf nrf nssf pcf smf udm udr n3iwf chf webconsole
 sudo apt-get update
-sudo docker-compose -f docker-compose-build.yaml build
+sudo docker-compose -f docker-compose-build-control.yaml build
