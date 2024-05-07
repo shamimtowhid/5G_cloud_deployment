@@ -14,12 +14,12 @@
 			"region": "{{user `aws_region`}}",
 			"profile": "default",
 
-			"source_ami": "ami-08e2c1a8d17c2fe17",
+			"source_ami": "ami-03c983f9003cb9cd1",
 			"ssh_username": "ubuntu",
 			"launch_block_device_mappings": [
 				{
 					"device_name": "/dev/sda1",
-					"volume_size": 20,
+					"volume_size": 10,
 					"delete_on_termination": true,
 					"encrypted": false,
 					"volume_type": "gp3",

@@ -1,4 +1,4 @@
-#! /usr/bin/env bash
+#!/usr/bin/bash
  
 set -e
  
@@ -7,62 +7,70 @@ set -e
 sleep 10
  
 export DEBIAN_FRONTEND="noninteractive"
-sudo apt update
-# installing docker and docker compose
-# Install dependencies
-sudo apt install -y \
-    apt-transport-https \
-    ca-certificates \
-    build-essential \
-    curl \
-    software-properties-common
+sudo apt -y update
 
+uname -r
 
-# Add Docker GPG key
-curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
+# installing GO
+wget https://dl.google.com/go/go1.18.10.linux-amd64.tar.gz
+sudo tar -C /usr/local -zxvf go1.18.10.linux-amd64.tar.gz
+mkdir -p ~/go/{bin,pkg,src}
+# The following assume that your shell is bash:
+echo 'export GOPATH=$HOME/go' >> $HOME/.bashrc
+echo 'export GOROOT=/usr/local/go' >> $HOME/.bashrc
+echo 'export PATH=$PATH:$GOPATH/bin:$GOROOT/bin' >> $HOME/.bashrc
+echo 'export GO111MODULE=auto' >> $HOME/.bashrc
 
-# Set up the stable Docker repository
-echo "deb [arch=amd64 signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+export GOPATH=$HOME/go
+export GOROOT=/usr/local/go
+export PATH=$PATH:$GOPATH/bin:$GOROOT/bin
+export GO111MODULE=auto
 
-# Install Docker Engine
-sudo apt update
-sudo apt install -y docker-ce=5:20.10.12~3-0~ubuntu-focal docker-ce-cli=5:20.10.12~3-0~ubuntu-focal containerd.io
+echo $GOPATH
+echo $GOROOT
+echo $PATH
+echo $HOME
+echo $GO111MODULE
 
-# Install Docker Compose
-sudo curl -L "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
-sudo chmod +x /usr/local/bin/docker-compose
+# MongoDB and supporting packages
+sudo apt -y update
+sudo apt install gnupg curl
+curl -fsSL https://pgp.mongodb.com/server-7.0.asc | sudo gpg -o /usr/share/keyrings/mongodb-server-7.0.gpg --dearmor
+echo "deb [ arch=amd64,arm64 signed-by=/usr/share/keyrings/mongodb-server-7.0.gpg ] https://repo.mongodb.org/apt/ubuntu jammy/mongodb-org/7.0 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-7.0.list
 
-# Create a symbolic link to allow running 'docker-compose' from any location
-sudo ln -s /usr/local/bin/docker-compose /usr/bin/docker-compose
+sudo apt -y update
+sudo apt -y install mongodb-org
 
-# Display installed versions
-echo "Docker version:"
-docker --version
-
-echo "Docker Compose version:"
-docker-compose --version
-
-# pulling mongo image
-sudo docker pull mongo
+# user-plane supporting packages
+sudo apt -y update
+sudo apt -y install git gcc g++ cmake autoconf libtool pkg-config libmnl-dev libyaml-dev
 
 # installing gtp5g
-#echo ">>>>>>>>>>> INSTALLING GTP5G"
-#sudo apt-get update
-#git clone https://github.com/shamimtowhid/gtp5g.git && cd gtp5g
-#sudo make clean
-#sudo make
-#sleep 3
-#sudo make install
+git clone -b v0.8.6 https://github.com/free5gc/gtp5g.git
+cd gtp5g
+make
+sudo make install
+
+# installing nodejs
+cd ~
+curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
+#sudo apt remove nodejs
+#sudo apt remove libnode-dev
+#sudo apt autoremove
+#sudo apt autoclean
+sudo apt -y update
+sudo apt -y install nodejs
+sudo corepack enable # setup yarn automatically
+
+# cloning free5gc repo
+cd ~
+git clone --recursive -b v3.4.1 -j `nproc` https://github.com/free5gc/free5gc.git
+cd ~/free5gc
+make all
+#make webconsole -y
 
 
-# cloning testbed
-cd ~/
-git clone https://github.com/shamimtowhid/free5gc-compose.git && cd free5gc-compose
-cd base
-git clone --recursive -j `nproc` https://github.com/shamimtowhid/free5gc.git
-cd ..
-
-# Build the images
-sudo make base amf ausf nrf nssf pcf smf udm udr n3iwf chf webconsole
-sudo apt-get update
-sudo docker-compose -f docker-compose-build-control.yaml build
+# running testbed
+cd /
+sudo mkdir data && cd data
+sudo mkdir db

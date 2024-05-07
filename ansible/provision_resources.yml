@@ -1,0 +1,68 @@
+---
+- name: Provision AWS VPC using Terraform
+  hosts: localhost
+  gather_facts: false
+  tasks:
+    - name: Run Terraform init for data plane
+      command: "terraform init -upgrade"
+      args:
+        chdir: "{{ playbook_dir }}/terraform/data"
+        
+    - name: Run Terraform apply for data plane
+      command: "terraform apply -auto-approve"
+      args:
+        chdir: "{{ playbook_dir }}/terraform/data"
+
+    - name: Run Terraform output command data
+      shell: terraform output -json
+      register: terraform_output
+      args:
+        chdir: "{{ playbook_dir }}/terraform/data"
+        executable: /bin/bash
+
+    - name: Set fact with data VM IPs
+      set_fact:
+        upf_public_ip: "{{ terraform_output.stdout | from_json | json_query('upf_public_ip') }}"
+
+
+    - name: Run Terraform init for control plane
+      command: "terraform init -upgrade"
+      args:
+        chdir: "{{ playbook_dir }}/terraform/control"
+        
+    - name: Run Terraform apply for control plane
+      command: "terraform apply -auto-approve"
+      args:
+        chdir: "{{ playbook_dir }}/terraform/control"
+
+    - name: Run Terraform output command control
+      shell: terraform output -json
+      register: terraform_output
+      args:
+        chdir: "{{ playbook_dir }}/terraform/control"
+        executable: /bin/bash
+
+    - name: Set fact with control VM IPs
+      set_fact:
+        control_public_ip: "{{ terraform_output.stdout | from_json | json_query('control_public_ip') }}"
+
+    - name: Run Terraform init for UE
+      command: "terraform init -upgrade"
+      args:
+        chdir: "{{ playbook_dir }}/terraform/ue"
+        
+    - name: Run Terraform apply for UE
+      command: "terraform apply -auto-approve"
+      args:
+        chdir: "{{ playbook_dir }}/terraform/ue"
+
+    - name: Run Terraform output command UE
+      shell: terraform output -json
+      register: terraform_output
+      args:
+        chdir: "{{ playbook_dir }}/terraform/ue"
+        executable: /bin/bash
+
+    - name: Set fact with UE VM IPs
+      set_fact:
+        ue_public_ip: "{{ terraform_output.stdout | from_json | json_query('ue_public_ip') }}"

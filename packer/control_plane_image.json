@@ -14,7 +14,7 @@
 			"region": "{{user `aws_region`}}",
 			"profile": "default",
 
-			"source_ami": "ami-07b36ea9852e986ad",
+			"source_ami": "ami-0f30a9c3a48f3fa79",
 			"ssh_username": "ubuntu",
 			"launch_block_device_mappings": [
 				{

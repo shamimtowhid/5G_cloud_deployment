@@ -9,6 +9,10 @@ terraform init -upgrade # to initialize terraform
 terraform plan # to see the resources that will be created
 terraform apply # start provisioning resources
 
+To export the Terraform output variables to a JSON file:
+
+terraform output -json > terraform_output.json
+
 
 # ansible commands
 ansible-playbook -i ini_file_path path_of_yml_file
@@ -17,3 +21,5 @@ ansible-playbook -i ini_file_path path_of_yml_file
 # packer commands
 packer validate base_image.json # to validate the json file
 packer build -var "infra_env=staging" base_image.json # to start building the image
+
+

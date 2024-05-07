@@ -2,7 +2,7 @@
 
 # Configure the AWS provider
 provider "aws" {
-  region = "us-east-2"
+  region = "us-west-1"
 }
 
 # Create a VPC
@@ -72,10 +72,17 @@ resource "aws_security_group" "allow_ssh" {
   }
 
   ingress {
-    from_port = 5000
-    to_port   = 5000
-    protocol  = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]  # Allow HTTP traffic from anywhere (for demo purposes)
+    from_port   = 8805
+    to_port     = 8805
+    protocol    = "udp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  ingress {
+    from_port   = 8805
+    to_port     = 8805
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
   }
 
   egress {
@@ -90,11 +97,11 @@ resource "aws_security_group" "allow_ssh" {
 
 # Create an EC2 instance
 resource "aws_instance" "ec2_instance_5g" {
-  ami             = "ami-0ff67b99884a09700" # Replace with your actual AMI ID
+  ami             = "ami-0c7904db60f5c38ce" # Replace with your actual AMI ID
   instance_type   = "t2.micro"
   subnet_id       = aws_subnet.subnet_5g.id
 
-  key_name        = "mty754-webserver" # Replace with your actual key pair name
+  key_name        = "mty754-us-west-1" # Replace with your actual key pair name
 
   # Allow SSH, HTTP traffic
   vpc_security_group_ids = [aws_security_group.allow_ssh.id]
@@ -104,4 +111,8 @@ resource "aws_instance" "ec2_instance_5g" {
   tags = {
     Name = "ec2_instance_5g"
   }
+}
+
+output "upf_public_ip" {
+  value = aws_instance.ec2_instance_5g.public_ip
 }

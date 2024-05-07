@@ -1,0 +1,47 @@
+Core side                                                                              UERANSIM side
+
+sudo wg genkey > private                              ||                               sudo wg genkey > private
+
+-------------------------------------------------------------------------------------------------------------------------------------
+
+sudo ip link add wg0 type wireguard                   ||                               sudo ip link add wg0 type wireguard
+sudo ip addr add 11.0.0.1/24 dev wg0                  ||                               sudo ip addr add 11.0.0.2/24 dev wg0
+sudo wg set wg0 private-key ./private                 ||                               sudo wg set wg0 private-key ./private
+sudo ip link set wg0 up                               ||                               sudo ip link set wg0 up
+
+sudo ip link add wg1 type wireguard                   ||                               sudo ip link add wg1 type wireguard
+sudo ip addr add 12.0.0.1/24 dev wg1                  ||                               sudo ip addr add 12.0.0.2/24 dev wg1
+sudo wg set wg1 private-key ./private                 ||                               sudo wg set wg1 private-key ./private
+sudo ip link set wg1 up                               ||                               sudo ip link set wg1 up
+
+sudo wg # shows keys and listening ports              ||                               sudo wg # shows keys and listening ports
+
+
+Core side:
+sudo wg set wg0 peer <UERANSIM_WG0_PUB_KEY> allowed-ips <UERANSIM_WG0_IP/32> endpoint <UERANSIM_PUBLIC_IP:wg0_port(shown in previous command)>
+sudo wg set wg1 peer <UERANSIM_WG1_PUB_KEY> allowed-ips <UERANSIM_WG1_IP/32> endpoint <UERANSIM_PUBLIC_IP:wg1_port(shown in previous command)>
+
+UERANSIM side:
+sudo wg set wg0 peer <CORE_WG0_PUB_KEY> allowed-ips <CORE_WG0_IP/32> endpoint <CORE_PUBLIC_IP:wg0_port(shown in previous command)>
+sudo wg set wg1 peer <CORE_WG1_PUB_KEY> allowed-ips <CORE_WG1_IP/32> endpoint <CORE_PUBLIC_IP:wg1_port(shown in previous command)>
+
+Configuration Changes:
+
+GNB Config:
+linkIp: 127.0.0.1
+ngapIp: 11.0.0.2
+gtpIp: 12.0.0.2
+amf_address: 11.0.0.1
+
+UE Config:
+Match with registered UE in the free5gc Webconsole.
+
+
+AMF_Config:
+ngapIpList: 11.0.0.1
+
+SMF_Config:
+interfaces >> interfacetype (N3) >> endpoints: 12.0.0.1
+
+UPF_Config:
+gtpu >> forwarder(gtp5g) >> ifList >> addr: 12.0.0.1
