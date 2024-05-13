@@ -45,3 +45,7 @@ interfaces >> interfacetype (N3) >> endpoints: 12.0.0.1
 
 UPF_Config:
 gtpu >> forwarder(gtp5g) >> ifList >> addr: 12.0.0.1
+
+
+
+

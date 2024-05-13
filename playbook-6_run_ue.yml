@@ -1,0 +1,27 @@
+---
+- name: Run UERANSIM
+  hosts: ue
+  tasks:  
+    - name: Run GNB
+      async: 10
+      poll: 0
+      shell: |
+        echo "sudo ./build/nr-gnb -c config/free5gc-gnb.yaml >./gnb_log.txt 2>&1 &" >> run_gnb.sh
+        sudo chmod +x run_gnb.sh
+        sudo nohup ./run_gnb.sh &
+      args:
+        chdir: "{{ ansible_user_dir }}/UERANSIM"
+        
+    - name: wait for 20 seconds
+      pause:
+        seconds: 20
+        
+    - name: Run UE
+      async: 10
+      poll: 0
+      shell: |
+        echo "sudo ./build/nr-ue -c config/free5gc-ue.yaml >./ue_log.txt 2>&1 &" >> run_ue.sh
+        sudo chmod +x run_ue.sh
+        sudo nohup ./run_ue.sh &
+      args:
+        chdir: "{{ ansible_user_dir }}/UERANSIM"

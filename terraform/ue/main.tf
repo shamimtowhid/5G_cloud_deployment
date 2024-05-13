@@ -1,8 +1,16 @@
 # main.tf
+variable "path" {
+  type    = string
+}
+
+# Read variables from JSON file
+locals {
+  vars = jsondecode(file(var.path))
+}
 
 # Configure the AWS provider
 provider "aws" {
-  region = "us-west-2"
+  region = local.vars.aws_region
 }
 
 # Create a VPC
@@ -20,7 +28,7 @@ resource "aws_vpc" "vpc_5g" {
 resource "aws_subnet" "subnet_5g" {
   vpc_id                  = aws_vpc.vpc_5g.id
   cidr_block             = "10.0.1.0/24"
-  availability_zone       = "us-west-2a" # e.g., us-east-1a
+  availability_zone       = local.vars.zone # e.g., us-east-1a
   map_public_ip_on_launch = true
 
   tags = {
@@ -59,9 +67,9 @@ resource "aws_route_table_association" "route_table_association_5g" {
 }
 
 # Create a security group to allow SSH, HTTP traffic
-resource "aws_security_group" "allow_ssh" {
-  name        = "allow-ssh"
-  description = "Allow inbound SSH traffic"
+resource "aws_security_group" "allow_traffic" {
+  name        = "allow-traffic"
+  description = "Allow inbound traffic"
   vpc_id      = aws_vpc.vpc_5g.id
 
 #  ingress {
@@ -90,14 +98,14 @@ resource "aws_security_group" "allow_ssh" {
 
 # Create an EC2 instance
 resource "aws_instance" "ec2_instance_5g" {
-  ami             = "ami-0fb30f21ef7b3e81e" # Replace with your actual AMI ID
-  instance_type   = "t2.micro"
+  ami             = local.vars.created_AMI # Replace with your actual AMI ID
+  instance_type   = local.vars.aws_instance
   subnet_id       = aws_subnet.subnet_5g.id
 
-  key_name        = "mty754-us-west-2" # Replace with your actual key pair name
+  key_name        = local.vars.key_pair # Replace with your actual key pair name
 
   # Allow SSH, HTTP traffic
-  vpc_security_group_ids = [aws_security_group.allow_ssh.id]
+  vpc_security_group_ids = [aws_security_group.allow_traffic.id]
 
   associate_public_ip_address = true
 

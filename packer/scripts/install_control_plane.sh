@@ -74,3 +74,6 @@ make all
 cd /
 sudo mkdir data && cd data
 sudo mkdir db
+
+# installing wireguard
+sudo apt -y install wireguard

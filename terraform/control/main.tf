@@ -1,8 +1,16 @@
 # main.tf
+variable "path" {
+  type    = string
+}
+
+# Read variables from JSON file
+locals {
+  vars = jsondecode(file(var.path))
+}
 
 # Configure the AWS provider
 provider "aws" {
-  region = "us-east-2"
+  region = local.vars.aws_region
 }
 
 # Create a VPC
@@ -20,7 +28,7 @@ resource "aws_vpc" "vpc_5g" {
 resource "aws_subnet" "subnet_5g" {
   vpc_id                  = aws_vpc.vpc_5g.id
   cidr_block             = "10.0.1.0/24"
-  availability_zone       = "us-east-2a" # e.g., us-east-1a
+  availability_zone       = local.vars.zone # e.g., us-east-1a
   map_public_ip_on_launch = true
 
   tags = {
@@ -59,31 +67,31 @@ resource "aws_route_table_association" "route_table_association_5g" {
 }
 
 # Create a security group to allow SSH, HTTP traffic
-resource "aws_security_group" "allow_ssh" {
-  name        = "allow-ssh"
-  description = "Allow inbound SSH traffic"
+resource "aws_security_group" "allow_traffic" {
+  name        = "allow-traffic"
+  description = "Allow inbound traffic"
   vpc_id      = aws_vpc.vpc_5g.id
 
-  ingress {
-    from_port   = 22
-    to_port     = 22
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  ingress {
-    from_port = 5000
-    to_port   = 5000
-    protocol  = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]  # Allow HTTP traffic from anywhere (for demo purposes)
-  }
+#  ingress {
+#    from_port   = 22
+#    to_port     = 22
+#    protocol    = "tcp"
+#    cidr_blocks = ["0.0.0.0/0"]
+#  }
 
 #  ingress {
-#    from_port = 0
-#    to_port   = 0
-#    protocol  = "-1"
+#    from_port = 5000
+#    to_port   = 5000
+#    protocol  = "tcp"
 #    cidr_blocks = ["0.0.0.0/0"]  # Allow HTTP traffic from anywhere (for demo purposes)
 #  }
+
+  ingress {
+    from_port = 0
+    to_port   = 0
+    protocol  = "-1"
+    cidr_blocks = ["0.0.0.0/0"]  # Allow HTTP traffic from anywhere (for demo purposes)
+  }
 
 
   egress {
@@ -98,14 +106,14 @@ resource "aws_security_group" "allow_ssh" {
 
 # Create an EC2 instance
 resource "aws_instance" "ec2_instance_5g" {
-  ami             = "ami-0f689ed38ea977cd7" # Replace with your actual AMI ID
-  instance_type   = "t2.small"
+  ami             = local.vars.created_AMI # Replace with your AMI ID
+  instance_type   = local.vars.aws_instance
   subnet_id       = aws_subnet.subnet_5g.id
 
-  key_name        = "mty754-us-east-2" # Replace with your actual key pair name
+  key_name        = local.vars.key_pair # Replace with your key pair name
 
   # Allow SSH, HTTP traffic
-  vpc_security_group_ids = [aws_security_group.allow_ssh.id]
+  vpc_security_group_ids = [aws_security_group.allow_traffic.id]
 
   associate_public_ip_address = true
 
@@ -125,16 +133,16 @@ resource "aws_instance" "ec2_instance_5g" {
     sudo systemctl stop ufw
     sudo systemctl disable ufw # prevents the firewall to wake up after a OS reboot
 
-    cd ~/
-    sudo mongod --port 27017 >> mongo_log.txt &
-    sleep 10
+    # cd ~/
+    # sudo mongod --port 27017 >> mongo_log.txt &
+    # sleep 10
 
-    cd free5gc
-    sudo ./run.sh >> nfs_log.txt &
-    sleep 50
+    # cd free5gc
+    # sudo ./run.sh >> nfs_log.txt &
+    # sleep 50
 
-    cd webconsole
-    sudo ./bin/webconsole -c config/webuicfg.yaml >> web_log.txt &
+    # cd webconsole
+    # sudo ./bin/webconsole -c config/webuicfg.yaml >> web_log.txt &
 
   EOF
 

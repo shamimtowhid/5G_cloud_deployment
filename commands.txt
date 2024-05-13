@@ -22,4 +22,12 @@ ansible-playbook -i ini_file_path path_of_yml_file
 packer validate base_image.json # to validate the json file
 packer build -var "infra_env=staging" base_image.json # to start building the image
 
-
+# Commands to run the testbed step by step
+1. ansible-playbook -i inventory.ini playbook-1_build_ami.yml
+2. ansible-playbook -i inventory.ini playbook-2_provision_resources.yml
+3. ansible-playbook -i inventory.ini playbook-3_setting_interfaces.yml
+4. ansible-playbook -i inventory.ini playbook-4_configure_nf.yml
+5. ansible-playbook -i inventory.ini playbook-5_run_core.yml
+--- Register the UE to the Webconsole according to nf_cfg/free5gc-ue.yaml
+6. ansible-playbook -i inventory.ini playbook-6_run_ue.yml
+7. ansible-playbook -i inventory.ini playbook-7_delete_resources.yml

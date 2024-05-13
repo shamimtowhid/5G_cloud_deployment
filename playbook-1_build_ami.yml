@@ -1,0 +1,64 @@
+---
+- name: Create AMIs for control plane and ueransim
+  hosts: localhost
+  gather_facts: false
+  tasks:
+    - name: Run Packer for UERANSIM image creation
+      command: "packer build -var-file=../cfg/ue_cfg.json ue_image.json"
+      args:
+        chdir: "{{ playbook_dir }}/packer"
+      register: packer_output
+
+    - name: Extract AMI ID from Packer output for UERANSIM
+      set_fact:
+        ami_id: "{{ packer_output.stdout_lines[-1] | regex_findall('ami-[a-f0-9]{17}') | first }}"
+
+    - name: Read existing JSON file for UERANSIM
+      slurp:
+        path: "{{ playbook_dir }}/cfg/ue_cfg.json"
+      register: json_content
+
+    - name: Decode JSON content for UERANSIM
+      set_fact:
+        decoded_json: "{{ json_content.content | b64decode | from_json }}"
+
+    - name: Modify JSON object for UERANSIM
+      set_fact:
+        modified_json:
+          "{{ decoded_json | combine({'created_AMI': ami_id }) }}"
+
+    - name: Save modified JSON content for UERANSIM
+      copy:
+        content: "{{ modified_json | to_json(indent=2) }}"
+        dest: "{{ playbook_dir }}/cfg/ue_cfg.json"
+
+
+    - name: Run Packer for control plane image creation
+      command: "packer build -var-file=../cfg/control_cfg.json control_plane_image.json"
+      args:
+        chdir: "{{ playbook_dir }}/packer"
+      register: packer_output_2
+
+
+    - name: Extract AMI ID from Packer output for Control plane
+      set_fact:
+        ami_id_2: "{{ packer_output_2.stdout_lines[-1] | regex_findall('ami-[a-f0-9]{17}') | first }}"
+
+    - name: Read existing JSON file for Control plane
+      slurp:
+        path: "{{ playbook_dir }}/cfg/control_cfg.json"
+      register: json_content_2
+
+    - name: Decode JSON content for Control plane
+      set_fact:
+        decoded_json_2: "{{ json_content_2.content | b64decode | from_json }}"
+
+    - name: Modify JSON object for Control plane
+      set_fact:
+        modified_json_2:
+          "{{ decoded_json_2 | combine({'created_AMI': ami_id_2 }) }}"
+
+    - name: Save modified JSON content for Control plane
+      copy:
+        content: "{{ modified_json_2 | to_json(indent=2) }}"
+        dest: "{{ playbook_dir }}/cfg/control_cfg.json"

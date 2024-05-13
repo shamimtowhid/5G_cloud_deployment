@@ -1,0 +1,164 @@
+---
+- name: Run core functions
+  hosts: control
+  tasks:
+    - name: Restart MongoDB service
+      command: "sudo service mongod restart"
+      args:
+        chdir: "{{ ansible_user_dir }}"
+        
+    - name: wait for 20 seconds
+      pause:
+        seconds: 20
+
+    - name: Run UPF
+      async: 5
+      poll: 0
+      shell: |
+        echo "sudo ./bin/upf -c config/upfcfg.yaml >/dev/null 2>&1 &" >> run_upf.sh
+        sudo chmod +x run_upf.sh
+        sudo nohup ./run_upf.sh &
+      args:
+        chdir: "{{ ansible_user_dir }}/free5gc"        
+        
+    - name: wait for 1 second
+      pause:
+        seconds: 1
+        
+    - name: Run NRF
+      async: 5
+      poll: 0
+      shell: |
+        echo "sudo ./bin/nrf -c config/nrfcfg.yaml >/dev/null 2>&1 &" >> run_nrf.sh
+        sudo chmod +x run_nrf.sh
+        sudo nohup ./run_nrf.sh &
+      args:
+        chdir: "{{ ansible_user_dir }}/free5gc"        
+        
+    - name: wait for 1 second
+      pause:
+        seconds: 1
+        
+    - name: Run AMF
+      async: 5
+      poll: 0
+      shell: |
+        echo "sudo ./bin/amf -c config/amfcfg.yaml >/dev/null 2>&1 &" >> run_amf.sh
+        sudo chmod +x run_amf.sh
+        sudo nohup ./run_amf.sh &
+      args:
+        chdir: "{{ ansible_user_dir }}/free5gc"        
+        
+    - name: wait for 1 second
+      pause:
+        seconds: 1
+        
+    - name: Run SMF
+      async: 5
+      poll: 0
+      shell: |
+        echo "sudo ./bin/smf -c config/smfcfg.yaml >/dev/null 2>&1 &" >> run_smf.sh
+        sudo chmod +x run_smf.sh
+        sudo nohup ./run_smf.sh &
+      args:
+        chdir: "{{ ansible_user_dir }}/free5gc"        
+        
+    - name: wait for 1 second
+      pause:
+        seconds: 1        
+        
+    - name: Run UDR
+      async: 5
+      poll: 0
+      shell: |
+        echo "sudo ./bin/udr -c config/udrcfg.yaml >/dev/null 2>&1 &" >> run_udr.sh
+        sudo chmod +x run_udr.sh
+        sudo nohup ./run_udr.sh &
+      args:
+        chdir: "{{ ansible_user_dir }}/free5gc"        
+        
+    - name: wait for 1 second
+      pause:
+        seconds: 1        
+        
+    - name: Run PCF
+      async: 5
+      poll: 0
+      shell: |
+        echo "sudo ./bin/pcf -c config/pcfcfg.yaml >/dev/null 2>&1 &" >> run_pcf.sh
+        sudo chmod +x run_pcf.sh
+        sudo nohup ./run_pcf.sh &
+      args:
+        chdir: "{{ ansible_user_dir }}/free5gc"        
+        
+    - name: wait for 1 second
+      pause:
+        seconds: 1
+
+    - name: Run UDM
+      async: 5
+      poll: 0
+      shell: |
+        echo "sudo ./bin/udm -c config/udmcfg.yaml >/dev/null 2>&1 &" >> run_udm.sh
+        sudo chmod +x run_udm.sh
+        sudo nohup ./run_udm.sh &
+      args:
+        chdir: "{{ ansible_user_dir }}/free5gc"        
+        
+    - name: wait for 1 second
+      pause:
+        seconds: 1
+
+    - name: Run NSSF
+      async: 5
+      poll: 0
+      shell: |
+        echo "sudo ./bin/nssf -c config/nssfcfg.yaml >/dev/null 2>&1 &" >> run_nssf.sh
+        sudo chmod +x run_nssf.sh
+        sudo nohup ./run_nssf.sh &
+      args:
+        chdir: "{{ ansible_user_dir }}/free5gc"        
+        
+    - name: wait for 1 second
+      pause:
+        seconds: 1
+
+    - name: Run AUSF
+      async: 5
+      poll: 0
+      shell: |
+        echo "sudo ./bin/ausf -c config/ausfcfg.yaml >/dev/null 2>&1 &" >> run_ausf.sh
+        sudo chmod +x run_ausf.sh
+        sudo nohup ./run_ausf.sh &
+      args:
+        chdir: "{{ ansible_user_dir }}/free5gc"        
+        
+    - name: wait for 1 second
+      pause:
+        seconds: 1
+
+    - name: Run CHF
+      async: 5
+      poll: 0
+      shell: |
+        echo "sudo ./bin/chf -c config/chfcfg.yaml >/dev/null 2>&1 &" >> run_chf.sh
+        sudo chmod +x run_chf.sh
+        sudo nohup ./run_chf.sh &
+      args:
+        chdir: "{{ ansible_user_dir }}/free5gc"        
+        
+    - name: wait for 1 second
+      pause:
+        seconds: 1
+
+    - name: Run webconsole
+      async: 50
+      poll: 0
+      shell: |
+        echo "sudo ./bin/webconsole -c config/webuicfg.yaml >/dev/null 2>&1 &" >> run_web.sh
+        sudo chmod +x run_web.sh
+        sudo nohup ./run_web.sh &
+      args:
+        chdir: "{{ ansible_user_dir }}/free5gc/webconsole"
+
+

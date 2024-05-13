@@ -33,3 +33,6 @@ sudo snap install cmake --classic
 
 cd ~/UERANSIM
 make
+
+# install wireguard
+sudo apt -y install wireguard

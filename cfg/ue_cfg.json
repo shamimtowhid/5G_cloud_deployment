@@ -1,0 +1,12 @@
+{
+  "source_ami": "ami-03c983f9003cb9cd1",
+  "aws_instance": "t2.micro",
+  "aws_region": "us-west-2",
+  "zone": "us-west-2a",
+  "infra_env": "staging",
+  "infra_name": "UERANSIM",
+  "ssh_username": "ubuntu",
+  "key_pair": "mty754-us-west-2",
+  "wg0": "11.0.0.2/24",
+  "wg1": "12.0.0.2/24"
+}

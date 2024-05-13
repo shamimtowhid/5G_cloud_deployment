@@ -1,0 +1,59 @@
+---
+- name: Loading configurations
+  hosts: localhost
+  tasks:
+    - name: Read existing JSON file for UERANSIM
+      slurp:
+        path: "{{ playbook_dir }}/cfg/ue_cfg.json"
+      register: json_content
+
+    - name: Decode JSON content for UERANSIM
+      set_fact:
+        decoded_json_ue: "{{ json_content.content | b64decode | from_json }}"
+
+    - name: Read existing JSON file for control
+      slurp:
+        path: "{{ playbook_dir }}/cfg/control_cfg.json"
+      register: json_content
+
+    - name: Decode JSON content for control
+      set_fact:
+        decoded_json_control: "{{ json_content.content | b64decode | from_json }}"
+
+- name: Loading configurations for UE
+  hosts: ue
+  tasks:
+    - name: Generate GNB config
+      vars:
+        gtpIp: "{{ hostvars['localhost']['decoded_json_ue']['wg1'].split('/')[0] }}"
+        ngapIp: "{{ hostvars['localhost']['decoded_json_ue']['wg0'].split('/')[0] }}"
+        amfIp: "{{ hostvars['localhost']['decoded_json_control']['wg0'].split('/')[0] }}"
+
+      template:
+        src: "{{playbook_dir}}/nf_cfg/free5gc-gnb.yaml.j2"
+        dest: "{{ansible_user_dir}}/UERANSIM/config/free5gc-gnb.yaml"
+
+
+- name: Loading configurations for control
+  hosts: control
+  tasks:
+    - name: Generate AMF config
+      vars:
+        ngapIp: "{{ hostvars['localhost']['decoded_json_control']['wg0'].split('/')[0] }}"
+      template:
+        src: "{{playbook_dir}}/nf_cfg/amfcfg.yaml.j2"
+        dest: "{{ansible_user_dir}}/free5gc/config/amfcfg.yaml"
+
+    - name: Generate SMF config
+      vars:
+        endpointIp: "{{ hostvars['localhost']['decoded_json_control']['wg1'].split('/')[0] }}"
+      template:
+        src: "{{playbook_dir}}/nf_cfg/smfcfg.yaml.j2"
+        dest: "{{ansible_user_dir}}/free5gc/config/smfcfg.yaml"
+
+    - name: Generate UPF config
+      vars:
+        gtpIp: "{{ hostvars['localhost']['decoded_json_control']['wg1'].split('/')[0] }}"
+      template:
+        src: "{{playbook_dir}}/nf_cfg/upfcfg.yaml.j2"
+        dest: "{{ansible_user_dir}}/free5gc/config/upfcfg.yaml"

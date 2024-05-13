@@ -1,0 +1,100 @@
+---
+- name: loading configurations
+  hosts: localhost
+  tasks:
+    - name: Read existing JSON file for UERANSIM
+      slurp:
+        path: "{{ playbook_dir }}/cfg/ue_cfg.json"
+      register: json_content
+
+    - name: Decode JSON content for UERANSIM
+      set_fact:
+        decoded_json_ue: "{{ json_content.content | b64decode | from_json }}"
+
+    - name: Read existing JSON file for control
+      slurp:
+        path: "{{ playbook_dir }}/cfg/control_cfg.json"
+      register: json_content
+
+    - name: Decode JSON content for control
+      set_fact:
+        decoded_json_control: "{{ json_content.content | b64decode | from_json }}"
+
+- name: Setting interfaces for control vm
+  hosts: control
+  tasks:
+    - name: setting wireguard interfaces for control
+      shell: |
+        sudo wg genkey > private
+        sudo ip link add wg0 type wireguard
+        sudo ip addr add {{hostvars['localhost']['decoded_json_control']['wg0']}} dev wg0
+        sudo wg set wg0 private-key ./private
+        sudo ip link set wg0 up
+        sudo ip link add wg1 type wireguard
+        sudo ip addr add {{hostvars['localhost']['decoded_json_control']['wg1']}} dev wg1
+        sudo wg set wg1 private-key ./private
+        sudo ip link set wg1 up
+        sudo wg > control_wg.txt
+
+    - name: Fetch file from control
+      fetch:
+        src: control_wg.txt
+        dest: cfg/control_wg.txt
+        flat: yes
+
+- name: Setting interfaces for UE vm
+  hosts: ue
+  tasks:
+    - name: setting wireguard interfaces for ue
+      shell: |
+        sudo wg genkey > private
+        sudo ip link add wg0 type wireguard
+        sudo ip addr add {{hostvars['localhost']['decoded_json_ue']['wg0']}} dev wg0
+        sudo wg set wg0 private-key ./private
+        sudo ip link set wg0 up
+        sudo ip link add wg1 type wireguard
+        sudo ip addr add {{hostvars['localhost']['decoded_json_ue']['wg1']}} dev wg1
+        sudo wg set wg1 private-key ./private
+        sudo ip link set wg1 up
+        sudo wg > ue_wg.txt 
+
+    - name: Fetch file from UE
+      fetch:
+        src: ue_wg.txt
+        dest: cfg/ue_wg.txt
+        flat: yes
+
+- name: Create shell scripts
+  hosts: localhost
+  tasks:
+    - name: 
+      shell: |
+        python3 convert_json.py cfg/control_wg.txt cfg/control_cfg.json cfg/ue_cmd.sh
+        python3 convert_json.py cfg/ue_wg.txt cfg/ue_cfg.json cfg/control_cmd.sh
+
+- name: Setting peer interfaces for UE
+  hosts: ue
+  tasks:
+    - name: Copy file from local to remote UE
+      copy:
+        src: cfg/ue_cmd.sh
+        dest: "{{ ansible_user_dir }}"
+
+    - name: execute script
+      shell: |
+        sudo chmod +x ue_cmd.sh
+        sudo ./ue_cmd.sh
+
+
+- name: Setting peer interfaces for Control
+  hosts: control
+  tasks:
+    - name: Copy file from local to remote Control
+      copy:
+        src: cfg/control_cmd.sh
+        dest: "{{ ansible_user_dir }}"
+
+    - name: execute script
+      shell: |
+        sudo chmod +x control_cmd.sh
+        sudo ./control_cmd.sh

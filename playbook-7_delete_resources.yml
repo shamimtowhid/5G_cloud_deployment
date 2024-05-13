@@ -1,0 +1,13 @@
+---
+- name: Delete all provisioned resources
+  hosts: localhost
+  tasks:
+    - name: delete resources for control
+      command: "terraform destroy -var='path=../../cfg/control_cfg.json' -auto-approve"
+      args:
+        chdir: "{{ playbook_dir }}/terraform/control"
+
+    - name: delete resources for ue
+      command: "terraform destroy -var='path=../../cfg/ue_cfg.json' -auto-approve"
+      args:
+        chdir: "{{ playbook_dir }}/terraform/ue"

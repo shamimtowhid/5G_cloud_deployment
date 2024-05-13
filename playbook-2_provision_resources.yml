@@ -1,0 +1,95 @@
+---
+- name: Provision AWS VPC using Terraform
+  hosts: localhost
+  gather_facts: false
+  tasks:
+    - name: Run Terraform init for control plane
+      command: "terraform init -upgrade"
+      args:
+        chdir: "{{ playbook_dir }}/terraform/control"
+        
+    - name: Run Terraform apply for control plane
+      command: "terraform apply -var='path=../../cfg/control_cfg.json' -auto-approve"
+      args:
+        chdir: "{{ playbook_dir }}/terraform/control"
+
+    - name: Run Terraform output command control
+      shell: terraform output -json
+      register: terraform_output
+      args:
+        chdir: "{{ playbook_dir }}/terraform/control"
+        executable: /bin/bash
+
+    - name: Set fact with control VM IPs
+      set_fact:
+        control_public_ip: "{{ terraform_output.stdout | from_json | json_query('control_public_ip') }}"
+
+    - name: Read existing JSON file for control
+      slurp:
+        path: "{{ playbook_dir }}/cfg/control_cfg.json"
+      register: json_content
+
+    - name: Decode JSON content for control
+      set_fact:
+        decoded_json: "{{ json_content.content | b64decode | from_json }}"
+
+    - name: Modify JSON object for control
+      set_fact:
+        modified_json:
+          "{{ decoded_json | combine({'public_ip': control_public_ip }) }}"
+
+    - name: Save modified JSON content for control
+      copy:
+        content: "{{ modified_json | to_json(indent=2) }}"
+        dest: "{{ playbook_dir }}/cfg/control_cfg.json"
+
+    - name: Run Terraform init for UE
+      command: "terraform init -upgrade"
+      args:
+        chdir: "{{ playbook_dir }}/terraform/ue"
+        
+    - name: Run Terraform apply for UE
+      command: "terraform apply -var='path=../../cfg/ue_cfg.json' -auto-approve"
+      args:
+        chdir: "{{ playbook_dir }}/terraform/ue"
+
+    - name: Run Terraform output command UE
+      shell: terraform output -json
+      register: terraform_output
+      args:
+        chdir: "{{ playbook_dir }}/terraform/ue"
+        executable: /bin/bash
+
+    - name: Set fact with UE VM IPs
+      set_fact:
+        ue_public_ip: "{{ terraform_output.stdout | from_json | json_query('ue_public_ip') }}"
+
+    - name: Read existing JSON file for UERANSIM
+      slurp:
+        path: "{{ playbook_dir }}/cfg/ue_cfg.json"
+      register: json_content
+
+    - name: Decode JSON content for UERANSIM
+      set_fact:
+        decoded_json: "{{ json_content.content | b64decode | from_json }}"
+
+    - name: Modify JSON object for UERANSIM
+      set_fact:
+        modified_json_2:
+          "{{ decoded_json | combine({'public_ip': ue_public_ip }) }}"
+
+    - name: Save modified JSON content for UERANSIM
+      copy:
+        content: "{{ modified_json_2 | to_json(indent=2) }}"
+        dest: "{{ playbook_dir }}/cfg/ue_cfg.json"
+
+    - name: Ensure [ue] and [control] sections exist and update content in inventory.ini
+      ansible.builtin.blockinfile:
+        path: inventory.ini
+        block: |
+          [control]
+          server1 ansible_host={{ modified_json['public_ip']['value'] }} ansible_user={{ modified_json['ssh_username'] }} ansible_ssh_private_key_file=key_pairs/{{ modified_json['key_pair'] }}.pem
+
+          [ue]
+          server2 ansible_host={{ modified_json_2['public_ip']['value'] }} ansible_user={{ modified_json_2['ssh_username'] }} ansible_ssh_private_key_file=key_pairs/{{ modified_json_2['key_pair'] }}.pem
+        marker: "# {mark} ANSIBLE MANAGED BLOCK - DO NOT EDIT"

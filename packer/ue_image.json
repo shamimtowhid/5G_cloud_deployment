@@ -1,11 +1,5 @@
 {
 	"min_packer_version": "1.0.0",
-	"variables": {
-		"infra_name": "UERANSIM",
-		"infra_env": "",
-		"aws_region": "us-west-2",
-		"aws_instance": "t2.micro"
-	},
 	"builders": [
 		{
 			"type": "amazon-ebs",
@@ -14,8 +8,8 @@
 			"region": "{{user `aws_region`}}",
 			"profile": "default",
 
-			"source_ami": "ami-03c983f9003cb9cd1",
-			"ssh_username": "ubuntu",
+			"source_ami": "{{user `source_ami`}}",
+			"ssh_username": "{{user `ssh_username`}}",
 			"launch_block_device_mappings": [
 				{
 					"device_name": "/dev/sda1",
