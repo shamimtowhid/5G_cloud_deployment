@@ -78,5 +78,7 @@ This repository is motivated by the work of [5G-mec-infra](https://github.com/pi
 
 ## References
 [1] [Free5GC](https://github.com/free5gc/free5gc)
+
 [2] [UERANSIM](https://github.com/aligungr/UERANSIM)
+
 [3] [5G-Mec-Infra](https://github.com/piotmni/5g-mec-infra/tree/master)
