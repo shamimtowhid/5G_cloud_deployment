@@ -3,9 +3,9 @@
   "aws_instance": "t2.micro",
   "aws_region": "us-west-2",
   "zone": "us-west-2a",
-  "infra_env": "staging",
-  "infra_name": "UERANSIM",
+  "infra_env": "data_plane",
+  "infra_name": "UPF",
   "ssh_username": "ubuntu",
   "key_pair": "mty754-us-west-2",
-  "wg0": "14.0.0.3"
+  "wg0": "14.0.0.2"
 }

@@ -133,17 +133,6 @@ resource "aws_instance" "ec2_instance_5g" {
     sudo systemctl stop ufw
     sudo systemctl disable ufw # prevents the firewall to wake up after a OS reboot
 
-    # cd ~/
-    # sudo mongod --port 27017 >> mongo_log.txt &
-    # sleep 10
-
-    # cd free5gc
-    # sudo ./run.sh >> nfs_log.txt &
-    # sleep 50
-
-    # cd webconsole
-    # sudo ./bin/webconsole -c config/webuicfg.yaml >> web_log.txt &
-
   EOF
 
 }

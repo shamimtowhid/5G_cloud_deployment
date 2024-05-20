@@ -41,15 +41,15 @@ echo "deb [ arch=amd64,arm64 signed-by=/usr/share/keyrings/mongodb-server-7.0.gp
 sudo apt -y update
 sudo apt -y install mongodb-org
 
-# user-plane supporting packages
+# supporting packages
 sudo apt -y update
 sudo apt -y install git gcc g++ cmake autoconf libtool pkg-config libmnl-dev libyaml-dev
 
 # installing gtp5g
-git clone -b v0.8.6 https://github.com/free5gc/gtp5g.git
-cd gtp5g
-make
-sudo make install
+#git clone -b v0.8.6 https://github.com/free5gc/gtp5g.git
+#cd gtp5g
+#make
+#sudo make install
 
 # installing nodejs
 cd ~
@@ -66,7 +66,8 @@ sudo corepack enable # setup yarn automatically
 cd ~
 git clone --recursive -b v3.4.1 -j `nproc` https://github.com/free5gc/free5gc.git
 cd ~/free5gc
-make all
+make amf ausf nrf nssf pcf smf udm udr n3iwf chf
+make webconsole
 #make webconsole -y
 
 

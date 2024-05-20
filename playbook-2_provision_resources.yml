@@ -7,7 +7,7 @@
       command: "terraform init -upgrade"
       args:
         chdir: "{{ playbook_dir }}/terraform/control"
-        
+       
     - name: Run Terraform apply for control plane
       command: "terraform apply -var='path=../../cfg/control_cfg.json' -auto-approve"
       args:
@@ -47,7 +47,7 @@
       command: "terraform init -upgrade"
       args:
         chdir: "{{ playbook_dir }}/terraform/ue"
-        
+       
     - name: Run Terraform apply for UE
       command: "terraform apply -var='path=../../cfg/ue_cfg.json' -auto-approve"
       args:
@@ -83,7 +83,49 @@
         content: "{{ modified_json_2 | to_json(indent=2) }}"
         dest: "{{ playbook_dir }}/cfg/ue_cfg.json"
 
-    - name: Ensure [ue] and [control] sections exist and update content in inventory.ini
+
+    - name: Run Terraform init for UPF
+      command: "terraform init -upgrade"
+      args:
+        chdir: "{{ playbook_dir }}/terraform/data"
+       
+    - name: Run Terraform apply for UPF
+      command: "terraform apply -var='path=../../cfg/data_cfg.json' -auto-approve"
+      args:
+        chdir: "{{ playbook_dir }}/terraform/data"
+
+    - name: Run Terraform output command UPF
+      shell: terraform output -json
+      register: terraform_output
+      args:
+        chdir: "{{ playbook_dir }}/terraform/data"
+        executable: /bin/bash
+
+    - name: Set fact with UPF VM IPs
+      set_fact:
+        upf_public_ip: "{{ terraform_output.stdout | from_json | json_query('upf_public_ip') }}"
+
+    - name: Read existing JSON file for UPF
+      slurp:
+        path: "{{ playbook_dir }}/cfg/data_cfg.json"
+      register: json_content
+
+    - name: Decode JSON content for UPF
+      set_fact:
+        decoded_json: "{{ json_content.content | b64decode | from_json }}"
+
+    - name: Modify JSON object for UPF
+      set_fact:
+        modified_json_3:
+          "{{ decoded_json | combine({'public_ip': upf_public_ip }) }}"
+
+    - name: Save modified JSON content for UPF
+      copy:
+        content: "{{ modified_json_3 | to_json(indent=2) }}"
+        dest: "{{ playbook_dir }}/cfg/data_cfg.json"
+
+
+    - name: Ensure [ue], [upf] and [control] sections exist and update content in inventory.ini
       ansible.builtin.blockinfile:
         path: inventory.ini
         block: |
@@ -92,4 +134,7 @@
 
           [ue]
           server2 ansible_host={{ modified_json_2['public_ip']['value'] }} ansible_user={{ modified_json_2['ssh_username'] }} ansible_ssh_private_key_file=key_pairs/{{ modified_json_2['key_pair'] }}.pem
+
+          [upf]
+          server3 ansible_host={{ modified_json_3['public_ip']['value'] }} ansible_user={{ modified_json_3['ssh_username'] }} ansible_ssh_private_key_file=key_pairs/{{ modified_json_3['key_pair'] }}.pem
         marker: "# {mark} ANSIBLE MANAGED BLOCK - DO NOT EDIT"

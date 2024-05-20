@@ -62,3 +62,34 @@
       copy:
         content: "{{ modified_json_2 | to_json(indent=2) }}"
         dest: "{{ playbook_dir }}/cfg/control_cfg.json"
+
+
+    - name: Run Packer for data plane image creation
+      command: "packer build -var-file=../cfg/data_cfg.json data_plane_image.json"
+      args:
+        chdir: "{{ playbook_dir }}/packer"
+      register: packer_output_3
+
+
+    - name: Extract AMI ID from Packer output for Data plane
+      set_fact:
+        ami_id_3: "{{ packer_output_3.stdout_lines[-1] | regex_findall('ami-[a-f0-9]{17}') | first }}"
+
+    - name: Read existing JSON file for Data plane
+      slurp:
+        path: "{{ playbook_dir }}/cfg/data_cfg.json"
+      register: json_content_3
+
+    - name: Decode JSON content for Data plane
+      set_fact:
+        decoded_json_3: "{{ json_content_3.content | b64decode | from_json }}"
+
+    - name: Modify JSON object for Data plane
+      set_fact:
+        modified_json_3:
+          "{{ decoded_json_3 | combine({'created_AMI': ami_id_3 }) }}"
+
+    - name: Save modified JSON content for Data plane
+      copy:
+        content: "{{ modified_json_3 | to_json(indent=2) }}"
+        dest: "{{ playbook_dir }}/cfg/data_cfg.json"

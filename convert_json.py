@@ -2,7 +2,7 @@ import sys
 import re
 import json
 
-def convert_to_json(input_file, input_file_2, output_file):
+def convert_to_json(input_file, input_file_2, output_file, mode):
     # Read the input file
     with open(input_file, 'r') as file:
         data = file.read()
@@ -32,24 +32,23 @@ def convert_to_json(input_file, input_file_2, output_file):
     #with open(output_file, 'w') as json_file:
     #    json.dump(json_data, json_file, indent=2)
 
-    cmd_1 = f"sudo wg set wg0 peer {json_data['wg0']['public key']} allowed-ips {cfg['wg0']} endpoint {cfg['public_ip']['value']}:{json_data['wg0']['listening port']}\n"
-    cmd_2 = f"sudo wg set wg1 peer {json_data['wg1']['public key']} allowed-ips {cfg['wg1']} endpoint {cfg['public_ip']['value']}:{json_data['wg1']['listening port']}\n"
+    cmd = f"sudo wg set wg0 peer {json_data['wg0']['public key']} allowed-ips {cfg['wg0']}/32 endpoint {cfg['public_ip']['value']}:{json_data['wg0']['listening port']}\n"
 
-    with open(output_file, "w") as f:
-        f.write(cmd_1)
-        f.write(cmd_2)
+    with open(output_file, mode) as f:
+        f.write(cmd)
 
     print(f"Commands are saved to '{output_file}'")
 
 # Check if the correct number of command-line arguments is provided
-if len(sys.argv) != 4:
-    print("Usage: python script.py input_file_path input_file_path_2 output_file_path")
+if len(sys.argv) != 5:
+    print("Usage: python script.py input_file_path input_file_path_2 output_file_path write_mode")
 else:
     # Get the input and output file paths from command-line arguments
     input_file_path = sys.argv[1]
     input_file_path_2 = sys.argv[2]
     output_file_path = sys.argv[3]
+    mode = sys.argv[4]
 
     # Call the conversion function with the provided file paths
-    convert_to_json(input_file_path, input_file_path_2, output_file_path)
+    convert_to_json(input_file_path, input_file_path_2, output_file_path, mode)
 

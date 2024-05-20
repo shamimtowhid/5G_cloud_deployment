@@ -1,16 +1,7 @@
 ---
-- name: Run core functions
-  hosts: control
+- name: Run Data Plane
+  hosts: upf
   tasks:
-    - name: Restart MongoDB service
-      command: "sudo service mongod restart"
-      args:
-        chdir: "{{ ansible_user_dir }}"
-        
-    - name: wait for 20 seconds
-      pause:
-        seconds: 20
-
     - name: Run UPF
       async: 5
       poll: 0
@@ -24,7 +15,19 @@
     - name: wait for 1 second
       pause:
         seconds: 1
+
+- name: Run core functions
+  hosts: control
+  tasks:
+    - name: Restart MongoDB service
+      command: "sudo service mongod restart"
+      args:
+        chdir: "{{ ansible_user_dir }}"
         
+    - name: wait for 20 seconds
+      pause:
+        seconds: 20
+ 
     - name: Run NRF
       async: 5
       poll: 0

@@ -11,3 +11,8 @@
       command: "terraform destroy -var='path=../../cfg/ue_cfg.json' -auto-approve"
       args:
         chdir: "{{ playbook_dir }}/terraform/ue"
+
+    - name: delete resources for upf
+      command: "terraform destroy -var='path=../../cfg/data_cfg.json' -auto-approve"
+      args:
+        chdir: "{{ playbook_dir }}/terraform/data"

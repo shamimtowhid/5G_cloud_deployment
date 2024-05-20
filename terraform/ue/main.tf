@@ -14,63 +14,63 @@ provider "aws" {
 }
 
 # Create a VPC
-resource "aws_vpc" "vpc_5g" {
-  cidr_block = "10.0.0.0/16"
+resource "aws_vpc" "vpc_ue" {
+  cidr_block = "11.0.0.0/16"
   enable_dns_support = true
   enable_dns_hostnames = true
 
   tags = {
-    Name = "vpc_5g"
+    Name = "vpc_ue"
   }
 }
 
 # Create a subnet in the VPC
-resource "aws_subnet" "subnet_5g" {
-  vpc_id                  = aws_vpc.vpc_5g.id
-  cidr_block             = "10.0.1.0/24"
+resource "aws_subnet" "subnet_ue" {
+  vpc_id                  = aws_vpc.vpc_ue.id
+  cidr_block             = "11.0.1.0/24"
   availability_zone       = local.vars.zone # e.g., us-east-1a
   map_public_ip_on_launch = true
 
   tags = {
-    Name = "subnet_5g"
+    Name = "subnet_ue"
   }
 }
 
 # Create an internet gateway
-resource "aws_internet_gateway" "igw_5g" {
-  vpc_id = aws_vpc.vpc_5g.id
+resource "aws_internet_gateway" "igw_ue" {
+  vpc_id = aws_vpc.vpc_ue.id
 
   tags = {
-    Name = "igw_5g"
+    Name = "igw_ue"
   }
 }
 
 
 # Create a routing table
-resource "aws_route_table" "route_table_5g" {
-  vpc_id = aws_vpc.vpc_5g.id
+resource "aws_route_table" "route_table_ue" {
+  vpc_id = aws_vpc.vpc_ue.id
 
   route {
     cidr_block = "0.0.0.0/0"
-    gateway_id = aws_internet_gateway.igw_5g.id
+    gateway_id = aws_internet_gateway.igw_ue.id
   }
 
   tags = {
-    Name = "route_table_5g"
+    Name = "route_table_ue"
   }
 }
 
 # Associate the subnet with the routing table
-resource "aws_route_table_association" "route_table_association_5g" {
-  subnet_id      = aws_subnet.subnet_5g.id
-  route_table_id = aws_route_table.route_table_5g.id
+resource "aws_route_table_association" "route_table_association_ue" {
+  subnet_id      = aws_subnet.subnet_ue.id
+  route_table_id = aws_route_table.route_table_ue.id
 }
 
 # Create a security group to allow SSH, HTTP traffic
 resource "aws_security_group" "allow_traffic" {
   name        = "allow-traffic"
   description = "Allow inbound traffic"
-  vpc_id      = aws_vpc.vpc_5g.id
+  vpc_id      = aws_vpc.vpc_ue.id
 
 #  ingress {
 #    from_port   = 22
@@ -97,10 +97,10 @@ resource "aws_security_group" "allow_traffic" {
 
 
 # Create an EC2 instance
-resource "aws_instance" "ec2_instance_5g" {
+resource "aws_instance" "UERANSIM" {
   ami             = local.vars.created_AMI # Replace with your actual AMI ID
   instance_type   = local.vars.aws_instance
-  subnet_id       = aws_subnet.subnet_5g.id
+  subnet_id       = aws_subnet.subnet_ue.id
 
   key_name        = local.vars.key_pair # Replace with your actual key pair name
 
@@ -110,10 +110,10 @@ resource "aws_instance" "ec2_instance_5g" {
   associate_public_ip_address = true
 
   tags = {
-    Name = "ec2_instance_5g"
+    Name = "UERANSIM"
   }
 }
 
 output "ue_public_ip" {
-  value = aws_instance.ec2_instance_5g.public_ip
+  value = aws_instance.UERANSIM.public_ip
 }
